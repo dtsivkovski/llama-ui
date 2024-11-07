@@ -47,7 +47,7 @@ class ChatboxState(ModelDropdownState):
             self.lastUsedModelName = model_name
     
     def handle_key_down(self, e: rx.EventHandler):
-        if e == "Enter" and self.allowSend:
+        if e == "Enter" and self.allowSend and self.currentMessage != "":
             if self.lastUsedModelName != self.get_selected_model_name():
                 self.lastUsedModelName = self.get_selected_model_name()
                 self.handle_clear()
@@ -58,6 +58,20 @@ class ChatboxState(ModelDropdownState):
             self.messages.append(message)
             scroll_to_bottom()
             return ChatboxState.handle_send
+        
+    def handle_button_send(self):
+        if self.allowSend and self.currentMessage != "":
+            if self.lastUsedModelName != self.get_selected_model_name():
+                self.lastUsedModelName = self.get_selected_model_name()
+                self.handle_clear()
+            
+            message = Message(role="user", content=self.currentMessage)
+            self.allowSend = False
+            self.currentMessage = ""
+            self.messages.append(message)
+            scroll_to_bottom()
+            return ChatboxState.handle_send
+
 
     def handle_change(self, e: rx.EventHandler):
         self.currentMessage = e
@@ -75,13 +89,16 @@ def chatbox() -> rx.Component:
         rx.vstack(
             rx.flex(
                 rx.hstack(
-                rx.text("Chatting with ", size="4"),
-                rx.text(ModelDropdownState.selected_model.name, color=rx.color("accent", shade=10), size="4"),
-                direction="row",
-                justify="start",
-                align="center",
-                width="100%",
-            ),
+                    rx.hstack(
+                        rx.text("Chatting with ", size="4"),
+                        rx.text(ModelDropdownState.selected_model.name, color=rx.color("accent", shade=10), size="4"),
+                    ),
+                    rx.button(rx.icon(tag="trash", size=20), size="3", on_click=ChatboxState.handle_clear, background_color=rx.color("red", shade=9), cursor="pointer"),
+                    direction="row",
+                    justify="between",
+                    align="center",
+                    width="100%",
+                ),
             rx.separator(margin_top="0.75em", margin_bottom="0em"),
             rx.flex(
                 rx.flex(
@@ -138,7 +155,14 @@ def chatbox() -> rx.Component:
                 on_key_down=ChatboxState.handle_key_down,
                 on_change=ChatboxState.handle_change,
             ),
-            rx.button(rx.icon(tag="send-horizontal", size=20), size="3"),
+            rx.cond(
+                ChatboxState.allowSend,
+                rx.button(rx.icon(tag="send-horizontal", size=20), size="3", on_click=ChatboxState.handle_button_send, cursor="pointer"),
+                rx.button(rx.icon(tag="loader-circle", 
+                                  size=20,
+                                  animation="spin 1s linear infinite",
+                                  ), size="3", disabled=True),
+            ),
             direction="row",
             margin_top="1em",
             width="100%",

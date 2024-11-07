@@ -39,6 +39,7 @@ class ModelDropdownState(rx.State):
     def select_model(self, model: OllamaModel):
         self.selected_model = model
         self.selected_model_name = model['model']
+        self.refresh_models()
 
     def refresh_models(self):
         self.ollamaModels = [OllamaModel.from_dict(m) for m in ollama.list()["models"]]
@@ -84,7 +85,7 @@ def model_dropdown() -> rx.Component:
                                 ),
                                 spacing="1"
                             ),
-                            variant="soft", size="3"
+                            variant="soft", size="3", cursor="pointer"
                         ),
                     ),
                     rx.menu.content(
@@ -97,7 +98,8 @@ def model_dropdown() -> rx.Component:
                 rx.button(
                     rx.icon(tag="plus"),
                     size="3",
-                    padding_x="0.5em"
+                    padding_x="0.5em",
+                    cursor="pointer"
                 )
             ),
             rx.dialog.content(

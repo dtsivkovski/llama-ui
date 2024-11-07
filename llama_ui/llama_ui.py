@@ -24,7 +24,8 @@ def index() -> rx.Component:
                     variant="ghost",
                     color="accent",
                     size="2",
-                    as_child=True
+                    as_child=True,
+                    cursor="pointer"
                 ),
                 justify="end",
                 align="end",
@@ -52,7 +53,10 @@ app = rx.App(
     theme=rx.theme(
         has_background=True,
         radius="large",
-        accent_color="indigo",
-    )
+        accent_color="grass",
+    ),
+    stylesheets=[
+        "style.css"
+    ]
 )
 app.add_page(index, title=defaultTitle)
