@@ -31,12 +31,14 @@ class ModelDropdownState(rx.State):
     print(ollamaModels)
     opened: bool = False
     selected_model: OllamaModel = ollamaModels[0]
+    selected_model_name: str = ollamaModels[0].model
 
     def toggle_opened(self, value: bool):
         self.opened = value
 
     def select_model(self, model: OllamaModel):
         self.selected_model = model
+        self.selected_model_name = model['model']
 
     def refresh_models(self):
         self.ollamaModels = [OllamaModel.from_dict(m) for m in ollama.list()["models"]]
@@ -49,6 +51,9 @@ class ModelDropdownState(rx.State):
 
     def get_selected_model(self):
         return self.selected_model
+    
+    def get_selected_model_name(self):
+        return self.selected_model_name
 
 def display_row(model: OllamaModel):
     return rx.menu.item(

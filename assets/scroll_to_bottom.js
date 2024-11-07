@@ -1,2 +1,6 @@
-// scrolls to the bottom of the chatbox id element
-document.getElementById('chatbox').scrollTo(0, document.getElementById('chatbox').scrollHeight);
+function scrollToBottom() {
+    const chatbox = document.getElementById("chatbox");
+    if (chatbox) {
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
+}

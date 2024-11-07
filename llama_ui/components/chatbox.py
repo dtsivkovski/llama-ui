@@ -3,6 +3,7 @@ import ollama
 from typing import List
 from dataclasses import dataclass
 from .model_dropdown import ModelDropdownState, OllamaModel
+import asyncio
 
 @dataclass
 class Message:
@@ -13,41 +14,61 @@ class ChatboxState(ModelDropdownState):
     currentMessage: str = ""
     messages: List[Message] = []
     allowSend: bool = True
+    isTyping: bool = False
+    typingMessage: str = ""
+    lastUsedModelName : str = ""
 
-    def handle_key_down(self, e: rx.EventHandler):
-        if e == "Enter" and self.allowSend:
-            message = Message(role="user", content=self.currentMessage)
-            self.allowSend = False
-            self.currentMessage = ""
-            self.messages.append(message)
-            self.handle_send()
-
-    def handle_change(self, e: rx.EventHandler):
-        self.currentMessage = e
-
-    def handle_send(self):
-        model = self.get_selected_model()
+    @rx.background
+    async def handle_send(self):
+        model_name = self.get_selected_model_name()
 
         messages_dict = [{"role": message.role, "content": message.content} for message in self.messages]
 
         stream = ollama.chat(
-            model=model.model,
+            model=model_name,
             messages=messages_dict,
             stream=True
         )
 
-        message_content = ""
+        async with self:
+            self.isTyping = True
 
         for chunk in stream:
-            message_content += chunk['message']['content']
+            async with self:
+                self.typingMessage += chunk['message']['content']
+            await asyncio.sleep(0)  
         
-        message = Message(role="assistant", content=message_content)
-        self.messages.append(message)
-        scroll_to_bottom()
-        self.allowSend = True
+        message = Message(role="assistant", content=self.typingMessage)
+        async with self:
+            self.isTyping = False
+            self.typingMessage = ""
+            self.messages.append(message)
+            self.allowSend = True
+            self.lastUsedModelName = model_name
+    
+    def handle_key_down(self, e: rx.EventHandler):
+        if e == "Enter" and self.allowSend:
+            if self.lastUsedModelName != self.get_selected_model_name():
+                self.lastUsedModelName = self.get_selected_model_name()
+                self.handle_clear()
+            
+            message = Message(role="user", content=self.currentMessage)
+            self.allowSend = False
+            self.currentMessage = ""
+            self.messages.append(message)
+            scroll_to_bottom()
+            return ChatboxState.handle_send
+
+    def handle_change(self, e: rx.EventHandler):
+        self.currentMessage = e
+
+    def handle_clear(self):
+        self.messages = []
+
 
 def scroll_to_bottom():
-    rx.script(src="scroll_to_bottom.js")
+    rx.script(src="scroll_to_bottom.js")  # Load the script file
+    rx.script("scrollToBottom()")  # Call the function to scroll
 
 def chatbox() -> rx.Component:
     return rx.box(
@@ -61,33 +82,52 @@ def chatbox() -> rx.Component:
                 align="center",
                 width="100%",
             ),
-            rx.separator(margin_top="0.75em", margin_bottom="1.5em"),
-            rx.vstack(
+            rx.separator(margin_top="0.75em", margin_bottom="0em"),
+            rx.flex(
+                rx.flex(
                 rx.foreach(ChatboxState.messages, lambda message: rx.hstack(
                     rx.box(
-                        rx.text(message.content),
+                        rx.markdown(message.content),
                         background_color=rx.cond(message.role == "user", rx.color("accent", shade=5), rx.color("gray", shade=5)),
-                        border_radius="0.5em 0.5em 0em 0.5em",
-                        padding_y="0.5em",
-                        padding_x="1em",
+                        border_radius=rx.cond(message.role == "user", "0.5em 0.5em 0em 0.5em", "0.5em 0.5em 0.5em 0em"),
+                        padding_x="2em",
+                        max_width="80%",
                         margin_bottom="0.5em"
                     ),
                     direction="row",
                     width="100%",
                     justify=rx.cond(message.role == "user", "end", "start")
                 )),
-                width="100%",
-                height="100%",
+                rx.cond(
+                    ChatboxState.isTyping,
+                    rx.hstack(
+                        rx.box(
+                            rx.markdown(ChatboxState.typingMessage),
+                            background_color=rx.color("gray", shade=5),
+                            border_radius="0.5em 0.5em 0.5em 0em",
+                            padding_x="2em",
+                            margin_bottom="0.5em",
+                            max_width="80%"
+                        ),
+                        direction="row",
+                        width="100%",
+                        justify="start",
+                        align="start"
+                    )
+                ),
+                margin_top="0.75em",
+                direction="column"
+                ),
+                direction="column-reverse",
+                overflow_y="scroll",
+                id="chatbox"
                 ),
                 direction="column",
                 height="100%",
                 width="100%",
-                overflow_y="scroll",
-                id="chatbox"
             ),
             width="100%",
-            height="70vh",
-            overflow_y="scroll"
+            height="70vh"
         ),
         rx.hstack(
             rx.input(

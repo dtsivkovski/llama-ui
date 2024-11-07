@@ -16,13 +16,20 @@ class State(rx.State):
 def index() -> rx.Component:
     # Welcome Page (Index)
     return rx.container(
-        rx.color_mode.button(position="top-right"),
         rx.vstack(
             rx.hstack(
                 model_dropdown(),
+                rx.button(
+                    rx.color_mode.button(),
+                    variant="ghost",
+                    color="accent",
+                    size="2",
+                    as_child=True
+                ),
                 justify="end",
                 align="end",
-                width="100%"
+                width="100%",
+                spacing="2"
             ),
             rx.vstack(
                 chatbox(),
@@ -30,14 +37,13 @@ def index() -> rx.Component:
                 direction="column",
                 justify="start",
                 align="center",
-                min_height="85vh",
+                min_height="75vh",
                 width="100%",
                 margin_top="1em"
             ),
-            margin_top="4em",
+            margin_top="2em",
             width="100%"
-        ),
-        rx.logo(),
+        )
     )
 
 defaultTitle = "LLama UI"
