@@ -47,6 +47,9 @@ class ModelDropdownState(rx.State):
         ollama.pull(model_name)
         self.refresh_models()
 
+    def get_selected_model(self):
+        return self.selected_model
+
 def display_row(model: OllamaModel):
     return rx.menu.item(
         rx.flex(
