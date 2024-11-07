@@ -1,12 +1,25 @@
 import reflex as rx
 
+from .model_dropdown import ModelDropdownState
 
-def chatbox(current_model: str) -> rx.Component:
+class ChatboxState(rx.State):
+    currentMessage: str = ""
+
+    def handle_key_down(self, e: rx.EventHandler):
+        if e == "Enter":
+            print(self.message)
+
+    def handle_change(self, e: rx.EventHandler):
+        self.currentMessage = e
+
+
+def chatbox() -> rx.Component:
     return rx.box(
-        rx.flex(
-            rx.hstack(
+        rx.vstack(
+            rx.flex(
+                rx.hstack(
                 rx.text("Chatting with ", size="4"),
-                rx.text(current_model, color=rx.color("accent", shade=10), size="4"),
+                rx.text(ModelDropdownState.selected_model.name, color=rx.color("accent", shade=10), size="4"),
                 direction="row",
                 justify="start",
                 align="center",
@@ -40,16 +53,32 @@ def chatbox(current_model: str) -> rx.Component:
                 ),
                 width="100%",
                 height="100%"
+                ),
+                direction="column",
+                height="100%",
+                width="100%",
+                flex_grow=1
             ),
-            direction="column",
-            height="100%",
             width="100%",
-            flex_grow=1
+            height="100%",
+            min_height="70vh",
         ),
+        rx.hstack(
+            rx.input(
+                placeholder="Message",
+                width="100%",
+                size="3",
+                on_key_down=ChatboxState.handle_key_down,
+                on_change=ChatboxState.handle_change
+            ),
+            rx.button(rx.icon(tag="send-horizontal", size=20), size="3"),
+            direction="row",
+            width="100%",
+            justify="end",
+        ),
+        width="100%",
+        height="100%",
         background_color=rx.color_mode_cond(light="#f5f5f5", dark="#212121"),
         border_radius="1em",
         padding="1em",
-        min_height="70vh",
-        width="100%",
-        height="100%"
     )

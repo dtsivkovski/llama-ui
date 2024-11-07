@@ -25,7 +25,7 @@ def index() -> rx.Component:
                 width="100%"
             ),
             rx.vstack(
-                chatbox(current_model=ModelDropdownState.selected_model.name),
+                chatbox(),
                 spacing="5",
                 direction="column",
                 justify="start",
