@@ -81,8 +81,8 @@ class ChatboxState(ModelDropdownState):
 
 
 def scroll_to_bottom():
-    rx.script(src="scroll_to_bottom.js")  # Load the script file
-    rx.script("scrollToBottom()")  # Call the function to scroll
+    rx.script(src="scroll_to_bottom.js") 
+    rx.script("scrollToBottom()")  
 
 def chatbox() -> rx.Component:
     return rx.box(
