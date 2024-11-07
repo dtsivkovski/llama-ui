@@ -1,11 +1,12 @@
 import reflex as rx
 
-def chatbox() -> rx.Component:
+
+def chatbox(current_model: str) -> rx.Component:
     return rx.box(
         rx.flex(
             rx.hstack(
                 rx.text("Chatting with ", size="4"),
-                rx.text("Model Name", color=rx.color("accent", shade=10), size="4"),
+                rx.text(current_model, color=rx.color("accent", shade=10), size="4"),
                 direction="row",
                 justify="start",
                 align="center",

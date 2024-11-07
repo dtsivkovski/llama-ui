@@ -4,7 +4,7 @@ import reflex as rx
 
 from rxconfig import config
 
-from .components.model_dropdown import model_dropdown
+from .components.model_dropdown import model_dropdown, ModelDropdownState
 from .components.chatbox import chatbox
 
 class State(rx.State):
@@ -25,7 +25,7 @@ def index() -> rx.Component:
                 width="100%"
             ),
             rx.vstack(
-                chatbox(),
+                chatbox(current_model=ModelDropdownState.selected_model.name),
                 spacing="5",
                 direction="column",
                 justify="start",
